@@ -6,12 +6,12 @@ import org.jsoup.nodes.Document
 
 class CalcioStreamingProvider : MainAPI() {
     override var lang = "it"
-    override var mainUrl = "https://calciostreaming.live"
+    override var mainUrl = "https://calciostreaming.today"
     override var name = "CalcioStreaming"
     override val hasMainPage = true
     override val hasChromecastSupport = true
     override val supportedTypes = setOf(
-        TvType.Live,
+        TvType.today,
 
         )
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
@@ -30,7 +30,7 @@ class CalcioStreamingProvider : MainAPI() {
                     name,
                     href,
                     this@CalcioStreamingProvider.name,
-                    TvType.Live,
+                    TvType.today,
                     posterurl,
                 )
             }
