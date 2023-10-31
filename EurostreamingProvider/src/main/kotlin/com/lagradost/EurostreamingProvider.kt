@@ -21,7 +21,7 @@ class EurostreamingProvider : MainAPI() {
     )
 
     override val mainPage = mainPageOf(
-        "$mainUrl/serie-tv-archive/page/" to "Ultime serie Tv",
+        "$mainUrl/serie-tv-archive/" to "Ultime serie Tv",
         "$mainUrl/animazione/page/" to "Ultime serie Animazione",
         )
 
