@@ -17,7 +17,7 @@ class GuardaSerieProvider : MainAPI() {
         TvType.TvSeries,
     )
     override val mainPage = mainPageOf(
-        Pair("$mainUrl/serietv-popolari/page/", "Serie Tv Popolari"),
+        Pair("$mainUrl/gener/serie-tv-archivio", "Serie Tv Popolari"),
         Pair("$mainUrl/serietv-streaming/page/", "Ultime Serie Tv"),
         Pair("$mainUrl/top-imdb/page/", "Top IMDB")
     )
