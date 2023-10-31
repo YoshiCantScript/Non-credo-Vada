@@ -29,7 +29,7 @@ class IlGenioDelloStreamingProvider : MainAPI() {
         )
     override val mainPage =
         mainPageOf(
-            Pair("$mainUrl/popular-movies/page/", "Film Popolari"),
+            Pair("$mainUrl/popular-movies/page/", "Film Popolarii"),
             Pair("$mainUrl/the-most-voted/page/", "I più votati"),
         )
     private val interceptor = CloudflareKiller()
