@@ -15,7 +15,7 @@ class CalcioStreamingProvider : MainAPI() {
 
         )
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val document = app.get(mainUrl+"embe.php?id=liveCh48").document
+        val document = app.get(mainUrl+"embe.php?id=liveCh").document
         val sections = document.select("div.slider-title").filter {it -> it.select("div.item").isNotEmpty()}
 
         if (sections.isEmpty()) throw ErrorLoadingException()
