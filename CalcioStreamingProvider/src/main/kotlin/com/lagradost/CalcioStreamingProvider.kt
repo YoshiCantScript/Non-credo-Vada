@@ -6,7 +6,7 @@ import org.jsoup.nodes.Document
 
 class CalcioStreamingProvider : MainAPI() {
     override var lang = "it"
-    override var mainUrl = "https://calciostreaming.today"
+    override var mainUrl = "https://nopay2.info/"
     override var name = "CalcioStreaming"
     override val hasMainPage = true
     override val hasChromecastSupport = true
@@ -15,7 +15,7 @@ class CalcioStreamingProvider : MainAPI() {
 
         )
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val document = app.get(mainUrl+"/partite-streaming.html").document
+        val document = app.get(mainUrl+"embe.php?id=liveCh48").document
         val sections = document.select("div.slider-title").filter {it -> it.select("div.item").isNotEmpty()}
 
         if (sections.isEmpty()) throw ErrorLoadingException()
