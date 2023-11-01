@@ -35,7 +35,7 @@ open class SoraItalianStream : TmdbProvider() {
     companion object {
         private const val tmdbAPI = "https://api.themoviedb.org/3"
         private const val apiKey = "71f37e6dff3b879fa4656f19547c418c" // PLEASE DON'T STEAL
-        const val guardaserieUrl = "https://guardaserie.black"
+        const val guardaserieUrl = "https://guardaserie.training"
         const val filmpertuttiUrl = "https://www.filmpertutti.wine/"
         const val cb01Url = "https://cb01.mobi/"
         const val animeworldUrl = "https://www.animeworld.so"
