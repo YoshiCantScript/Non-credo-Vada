@@ -6,7 +6,7 @@ import org.jsoup.nodes.Document
 
 class CalcioStreamingProvider : MainAPI() {
     override var lang = "it"
-    override var mainUrl = "https://nopay2.info/"
+    override var mainUrl = "https://nopay2.info/embe.php?id="
     override var name = "CalcioStreaming"
     override val hasMainPage = true
     override val hasChromecastSupport = true
