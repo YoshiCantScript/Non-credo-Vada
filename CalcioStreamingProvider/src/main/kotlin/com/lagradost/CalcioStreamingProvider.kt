@@ -6,7 +6,7 @@ import org.jsoup.nodes.Document
 
 class CalcioStreamingProvider : MainAPI() {
     override var lang = "it"
-    override var mainUrl = "https://nopay2.info/embe.php?id="
+    override var mainUrl = "https://nopay2.info"
     override var name = "CalcioStreaming"
     override val hasMainPage = true
     override val hasChromecastSupport = true
@@ -17,8 +17,8 @@ class CalcioStreamingProvider : MainAPI() {
  
   override val mainPage =
         mainPageOf(
-            "$mainUrl1" to "Ultime Serie Tv",
-            "$mainUrl2" to "Ultimi Film",
+            "$mainUrl/embe.php?id=1" to "Ultime Serie Tv",
+            "$mainUrl/embe.php?id=2" to "Ultimi Film",
         )
  
 
