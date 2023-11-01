@@ -33,6 +33,44 @@ override suspend fun getMainPage(
         return newHomePageResponse(arrayListOf(HomePageList(request.name, home)), hasNext = true)
     }
 
+private fun Element.toSearchResult(): SearchResponse? {
+        val title =
+            this.selectFirst("img")?.attr("alt") ?: throw ErrorLoadingException("No Title found")
+        val link =
+            this.selectFirst("a")?.attr("href") ?: throw ErrorLoadingException("No Link found")
+        val posterUrl = fixUrl(
+            this.selectFirst("img")?.attr("src") ?: throw ErrorLoadingException("No Poster found")
+        )
+        val year = Regex("\\(([^)]*)\\)").find(
+            title
+        )?.groupValues?.getOrNull(1)?.toIntOrNull()
+        return newMovieSearchResponse(
+            title,
+            link,
+            TvType.TvSeries
+        ) {
+            this.year = year
+            addPoster(posterUrl)
+        }
+    }
+
+    override suspend fun search(query: String): List<SearchResponse> {
+        val body = FormBody.Builder()
+            .addEncoded("do", "search")
+            .addEncoded("subaction", "search")
+            .addEncoded("story", query)
+            .addEncoded("sortby", "news_read")
+            .build()
+        val doc = app.post(
+            "$mainUrl/index.php",
+            requestBody = body
+        ).document
+
+        return doc.select("div.card").mapNotNull { series ->
+            series.toSearchResult()
+        }
+    }
+
     override suspend fun load(url: String): LoadResponse {
 
         val document = app.get(url).document
