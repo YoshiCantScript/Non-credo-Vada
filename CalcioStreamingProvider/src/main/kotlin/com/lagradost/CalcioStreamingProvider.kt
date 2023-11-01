@@ -14,12 +14,12 @@ class CalcioStreamingProvider : MainAPI() {
         TvType.Live,
 
         )
-    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val document = app.get(mainUrl+"embe.php?id=liveCh").document
-        val sections = document.select("div.slider-title").filter {it -> it.select("div.item").isNotEmpty()}
-
-        if (sections.isEmpty()) throw ErrorLoadingException()
-
+ 
+  override val mainPage =
+        mainPageOf(
+            "$mainUrl1" to "Ultime Serie Tv",
+            "$mainUrl2" to "Ultimi Film",
+        )
         return HomePageResponse(sections.map { it ->
             val categoryname = it.selectFirst("h2 > strong")!!.text()
             val shows = it.select("div.item").map {
