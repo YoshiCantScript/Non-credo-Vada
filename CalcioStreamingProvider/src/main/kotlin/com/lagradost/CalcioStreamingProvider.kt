@@ -20,29 +20,7 @@ class CalcioStreamingProvider : MainAPI() {
             "$mainUrl1" to "Ultime Serie Tv",
             "$mainUrl2" to "Ultimi Film",
         )
-        return HomePageResponse(sections.map { it ->
-            val categoryname = it.selectFirst("h2 > strong")!!.text()
-            val shows = it.select("div.item").map {
-                val href = it.selectFirst("a")!!.attr("href")
-                val name = it.selectFirst("a > div > h1")!!.text()
-                val posterurl = fixUrl(it.selectFirst("a > img")!!.attr("src"))
-                LiveSearchResponse(
-                    name,
-                    href,
-                    this@CalcioStreamingProvider.name,
-                    TvType.Live,
-                    posterurl,
-                )
-            }
-            HomePageList(
-                categoryname,
-                shows,
-                isHorizontalImages = true
-            )
-
-        })
-
-    }
+ 
 
 
     override suspend fun load(url: String): LoadResponse {
