@@ -6,7 +6,7 @@ import com.lagradost.cloudstream3.utils.Qualities
 import me.xdrop.fuzzywuzzy.FuzzySearch
 
 open class TvpolanProvider : MainAPI() {
-    override var mainUrl = "http://tvpolan.ml/"
+    override var mainUrl = "nopay2.info"
     override var name = "TV Polan"
     override var lang = "pl"
     override val hasMainPage = true
@@ -45,7 +45,7 @@ open class TvpolanProvider : MainAPI() {
     override suspend fun load(url: String): LoadResponse? {
         val document = app.get(url).document
 
-        val name = Regex("http://tvpolen\\.ml/(.+)\\.php").find(url)?.groupValues?.get(1) ?: this.name
+        val name = Regex("http://nopay2.info/embe.php?id=").find(url)?.groupValues?.get(1) ?: this.name
 
         val src = document.selectFirst("video source[src]")?.attr("src") ?: return null
 
@@ -66,7 +66,7 @@ open class TvpolanProvider : MainAPI() {
     ): Boolean {
         callback.invoke(
             ExtractorLink(
-                "tvpolen.ml",
+                "nopay2.info",
                 this.name,
                 data,
                 "",
