@@ -6,7 +6,7 @@ import org.jsoup.nodes.Document
 
 class CalcioStreamingProvider : MainAPI() {
     override var lang = "it"
-    override var mainUrl = "https://nopay2.info"
+    override var mainUrl = "https://calciostreaming.live"
     override var name = "CalcioStreaming"
     override val hasMainPage = true
     override val hasChromecastSupport = true
@@ -14,85 +14,94 @@ class CalcioStreamingProvider : MainAPI() {
         TvType.Live,
 
         )
- 
- override val mainPage = mainPageOf(
-        Pair("$mainUrl/embe.php?id=1", "Ultimi Film"),
-        Pair("$mainUrl/embe.php?id=5", "Film in HD"),
-        Pair("$mainUrl/embe.php?id=6", "Ora al cinema")
-    )
-
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val url = request.data + page
-        val soup = app.get(url).document
-        val home = soup.select("div.box").mapNotNull {
-            it.toSearchResult()
-        }
-        return newHomePageResponse(arrayListOf(HomePageList(request.name, home)), hasNext = true)
+        val document = app.get(mainUrl+"/partite-streaming.html").document
+        val sections = document.select("div.slider-title").filter {it -> it.select("div.item").isNotEmpty()}
+
+        if (sections.isEmpty()) throw ErrorLoadingException()
+
+        return HomePageResponse(sections.map { it ->
+            val categoryname = it.selectFirst("h2 > strong")!!.text()
+            val shows = it.select("div.item").map {
+                val href = it.selectFirst("a")!!.attr("href")
+                val name = it.selectFirst("a > div > h1")!!.text()
+                val posterurl = fixUrl(it.selectFirst("a > img")!!.attr("src"))
+                LiveSearchResponse(
+                    name,
+                    href,
+                    this@CalcioStreamingProvider.name,
+                    TvType.Live,
+                    posterurl,
+                )
+            }
+            HomePageList(
+                categoryname,
+                shows,
+                isHorizontalImages = true
+            )
+
+        })
+
     }
 
-    private fun Element.toSearchResult(): SearchResponse? {
-        val title = this.selectFirst("img")?.attr("alt") ?: return null
-        val link = this.selectFirst("a")?.attr("href") ?: return null
-        val image = mainUrl + this.selectFirst("img")?.attr("src")
-        val quality = getQualityFromString(this.selectFirst("span")?.text())
-        return newMovieSearchResponse(title, link, TvType.Movie) {
-            this.posterUrl = image
-            this.quality = quality
-        }
-    }
-
-    override suspend fun search(query: String): List<SearchResponse> {
-        val body = FormBody.Builder()
-            .addEncoded("do", "search")
-            .addEncoded("subaction", "search")
-            .addEncoded("story", query)
-            .addEncoded("sortby", "news_read")
-            .build()
-            
-        val doc = app.post(
-            "$mainUrl/index.php",
-            requestBody = body
-        ).document
-
-        return doc.select("div.box").mapNotNull {
-            it.toSearchResult()
-        }
-    }
 
     override suspend fun load(url: String): LoadResponse {
-        val document = app.get(url).document
 
-        val title = document.selectFirst(" h1 > a")?.text()?.replace("streaming", "")
-            ?: throw ErrorLoadingException("No Title found")
-        val description = document.select("#sfull").textNodes().first { it.text().trim().isNotEmpty() }.text().trim()
-        val rating = document.select("span.rateIMDB").text().substringAfter(" ")
-        val year = document.selectFirst("#details")?.select("li")
-            ?.firstOrNull { it.select("label").text().contains("Anno") }
-            ?.text()?.substringAfter(" ")?.toIntOrNull()
-        val poster = fixUrl(document.selectFirst("div.thumbphoto > img")?.attr("src")?: throw ErrorLoadingException("No Poster found") )
-        val recomm = document.select("ul.related-list > li").mapNotNull {
-            it.toSearchResult()
-        }
-        val actors: List<Actor> =
-            document.select("#staring > a").map {
-                Actor(it.text())
-            }
-        val tags: List<String> = document.select("#details > li:nth-child(1) > a").map { it.text() }
-        val trailerUrl = document.selectFirst("#showtrailer > div > div > iframe")?.attr("src")
-        return newMovieLoadResponse(
-            title,
+        val document = app.get(url).document
+        val poster =  fixUrl(document.select("#title-single > div").attr("style").substringAfter("url(").substringBeforeLast(")"))
+        val Matchstart = document.select("div.info-wrap > div").textNodes().joinToString("").trim()
+        return LiveStreamLoadResponse(
+            document.selectFirst(" div.info-t > h1")!!.text(),
             url,
-            TvType.Movie,
-            url
-        ) {
-            this.year = year
-            this.plot = description
-            this.recommendations = recomm
-            this.tags = tags
-            addActors(actors)
-            addPoster(poster)
-            addRating(rating)
-            addTrailer(trailerUrl)
+            this.name,
+            url,
+            poster,
+            plot = Matchstart
+        )
+    }
+
+    private fun matchFound(document: Document) : Boolean {
+        return Regex(""""((.|\n)*?).";""").containsMatchIn(
+            getAndUnpack(
+                document.toString()
+            ))
+    }
+
+    private fun getUrl(document: Document):String{
+        return Regex(""""((.|\n)*?).";""").find(
+            getAndUnpack(
+                document.toString()
+            ))!!.value.replace("""src="""", "").replace(""""""", "").replace(";", "")
+    }
+
+    private suspend fun extractVideoLinks(
+        url: String,
+        callback: (ExtractorLink) -> Unit
+    ) {
+        val document = app.get(url).document
+        document.select("button.btn").forEach { button ->
+            var link = button.attr("data-link")
+            var oldLink = link
+            var videoNotFound = true
+            while (videoNotFound) {
+                val doc = app.get(link).document
+                link = doc.selectFirst("iframe")?.attr("src") ?: break
+                val newpage = app.get(fixUrl(link), referer = oldLink).document
+                oldLink = link
+                if (newpage.select("script").size >= 6 && matchFound(newpage)){
+                    videoNotFound = false
+                    callback(
+                        ExtractorLink(
+                            this.name,
+                            button.text(),
+                            getUrl(newpage),
+                            fixUrl(link),
+                            quality = 0,
+                            true
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -103,21 +112,9 @@ class CalcioStreamingProvider : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val doc = app.get(data).document
-        if (doc.select("div.guardahd-player").isNullOrEmpty()) {
-            val videoUrl =
-                doc.select("input").last { it.hasAttr("data-mirror") }.attr("value")
-            loadExtractor(videoUrl, data, subtitleCallback, callback)
-            doc.select("#mirrors > li > a").forEach {
-                loadExtractor(fixUrl(it.attr("data-target")), data, subtitleCallback, callback)
-            }
-        } else {
-            val pagelinks = doc.select("div.guardahd-player").select("iframe").attr("src")
-            val docLinks = app.get(pagelinks).document
-            docLinks.select("body > div > ul > li").forEach {
-                loadExtractor(fixUrl(it.attr("data-link")), data, subtitleCallback, callback)
-            }
-        }
+        extractVideoLinks(data, callback)
+
         return true
     }
 }
+
